@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>La QueveCasa</title>
+    </head>
+    <body>
+        <h1>Vigilancia de La QueveCasa</h1>
+        {% if last_sensor_data %}
+            <h2 id="timestamp">{{ last_sensor_data.timestamp|date:"d/m/y H:i:s" }}</h2>
+            <p><strong>Temperatura:</strong> <span id="temperature">{{ last_sensor_data.temperature }}°C</span></p>
+            <p><strong>¿Hay alguien merodeando la casa?:</strong> <span
+                    id="motion">{{ last_sensor_data.motion|yesno:"Sí,No" }}</span></p>
+        {% else %}
+            <p>No hay información disponible.</p>
+        {% endif %}
+    </body>
+</html>
+
+<script>
+    async function fetchSensorData() {
+        try {
+            const response = await fetch('/api/sensor_data/');
+            if (response.ok) {
+                const data = await response.json();
+                const lastData = data[data.length - 1];
+                updateSensorData(lastData);
+            } else {
+                console.error("Error al obtener datos de la API.");
+            }
+        } catch (error) {
+            console.error("Error en la solicitud:", error);
+        }
+    }
+
+    function updateSensorData(data) {
+        if (data) {
+            document.getElementById("timestamp").textContent = formatTimestamp(data.timestamp);
+            document.getElementById("temperature").textContent = `${data.temperature}°C`;
+            document.getElementById("motion").textContent = data.motion_detected ? "Sí" : "No";
+        }
+    }
+
+    function formatTimestamp(timestamp) {
+        const date = new Date(timestamp);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = String(date.getFullYear()).slice(-2);
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+    }
+
+    setInterval(fetchSensorData, 5000);
+</script>
