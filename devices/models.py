@@ -8,3 +8,7 @@ class SensorData(models.Model):
 
     def __str__(self):
         return f"Temp: {self.temperature}, Motion: {self.motion_detected} at {self.timestamp}"
+
+
+class FanControl(models.Model):
+    fan_status = models.BooleanField(default=False)
